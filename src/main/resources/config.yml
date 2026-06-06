@@ -46,6 +46,7 @@ messages:
   not-in-queue: "&cYou are not in any queue!"
   world-not-found: "&cWorld not found!"
   no-permission: "&cYou don't have permission to use this!"
+  cannot-queue-while-falling: "&cYou cannot join the RTP queue while falling."
   broadcast-message-hidden: "&cYou will no longer see RTP queue messages."
   broadcast-message-shown: "&aYou will now see RTP queue messages."
   config-reloaded: "&aConfiguration reloaded successfully!"

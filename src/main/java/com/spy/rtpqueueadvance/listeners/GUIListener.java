@@ -2,6 +2,7 @@ package com.spy.rtpqueueadvance.listeners;
 
 import com.spy.rtpqueueadvance.RtpQueueAdvance;
 import com.spy.rtpqueueadvance.gui.WorldSelectionGUI;
+import com.spy.rtpqueueadvance.utils.MessageCache;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -63,6 +64,12 @@ public class GUIListener implements Listener {
         if (currentQueue != null && currentQueue.equals(worldName)) {
             plugin.getQueueManager().removeFromQueue(player);
         } else {
+            if (currentQueue != null && !plugin.getQueueManager().canJoinQueue(player)) {
+                player.sendMessage(MessageCache.getComponent(plugin.getConfigManager().getPrefix()
+                        + plugin.getConfigManager().getCannotQueueWhileFallingMsg()));
+                return;
+            }
+
             if (currentQueue != null) {
                 plugin.getQueueManager().removeFromQueue(player);
             }

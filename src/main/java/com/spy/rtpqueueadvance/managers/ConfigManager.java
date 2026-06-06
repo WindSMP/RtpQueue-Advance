@@ -32,6 +32,7 @@ public class ConfigManager {
     private String opponentLeftMsg;
     private String worldNotFoundMsg;
     private String noPermissionMsg;
+    private String cannotQueueWhileFallingMsg;
     private String broadcastMessageHidden;
     private String broadcastMessageShown;
     private String configReloadedMsg;
@@ -91,6 +92,8 @@ public class ConfigManager {
                 "&cYour opponent left! You've been placed back at the front of the queue.");
         worldNotFoundMsg = plugin.getConfig().getString("messages.world-not-found", "&cWorld not found!");
         noPermissionMsg = plugin.getConfig().getString("messages.no-permission", "&cYou don't have permission to use this!");
+        cannotQueueWhileFallingMsg = plugin.getConfig().getString("messages.cannot-queue-while-falling",
+                "&cYou cannot join the RTP queue while falling.");
         broadcastMessageHidden = plugin.getConfig().getString("messages.broadcast-message-hidden",
                 "&cYou will no longer see RTP queue messages.");
         broadcastMessageShown = plugin.getConfig().getString("messages.broadcast-message-shown",
@@ -250,6 +253,10 @@ public class ConfigManager {
 
     public String getNoPermissionMsg() {
         return noPermissionMsg;
+    }
+
+    public String getCannotQueueWhileFallingMsg() {
+        return cannotQueueWhileFallingMsg;
     }
 
     public String getBroadcastMessageHidden() {

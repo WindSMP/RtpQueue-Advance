@@ -9,6 +9,7 @@ import net.kyori.adventure.util.Ticks;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,6 +95,12 @@ public class QueueManager {
             return;
         }
 
+        if (!canJoinQueue(player)) {
+            player.sendMessage(MessageCache.getComponent(plugin.getConfigManager().getPrefix()
+                    + plugin.getConfigManager().getCannotQueueWhileFallingMsg()));
+            return;
+        }
+
         if (playersInQueue.contains(player.getUniqueId())) {
             player.sendMessage(MessageCache.getComponent(plugin.getConfigManager().getPrefix() + plugin.getConfigManager().getAlreadyInQueueMsg()));
             return;
@@ -127,6 +134,10 @@ public class QueueManager {
         }
 
         checkAndFormMatch(worldName);
+    }
+
+    public boolean canJoinQueue(Player player) {
+        return !isFalling(player);
     }
 
     private void checkAndFormMatch(String worldName) {
@@ -381,13 +392,7 @@ public class QueueManager {
             Location safeLoc = findSafeLocation(world, x, z);
 
             if (safeLoc != null) {
-                player.teleportAsync(safeLoc).thenAccept(success -> {
-                    if (success) {
-                        player.sendMessage(
-                                MessageCache.getComponent(plugin.getConfigManager().getPrefix() + plugin.getConfigManager().getTeleportedMsg()));
-                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                    }
-                });
+                teleportPlayer(player, safeLoc);
             } else {
                 findAndTeleport(player, world, config, attempts + 1);
             }
@@ -414,13 +419,7 @@ public class QueueManager {
 
             if (sharedLocation != null) {
                 for (Player player : players) {
-                    player.teleportAsync(sharedLocation).thenAccept(success -> {
-                        if (success) {
-                            player.sendMessage(MessageCache.getComponent(plugin.getConfigManager().getPrefix()
-                                    + plugin.getConfigManager().getTeleportedMsg()));
-                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                        }
-                    });
+                    teleportPlayer(player, sharedLocation);
                     cancelActionbarTask(player.getUniqueId());
                 }
             } else {
@@ -471,6 +470,37 @@ public class QueueManager {
         ScheduledTask task = actionbarTasks.remove(uuid);
         if (task != null)
             task.cancel();
+    }
+
+    private boolean isFalling(Player player) {
+        return player.getFallDistance() > 0.0F
+                || player.getVelocity().getY() < -0.08D
+                || player.isGliding();
+    }
+
+    private void teleportPlayer(Player player, Location location) {
+        Location targetLocation = location.clone();
+
+        player.getScheduler().run(plugin, task -> {
+            resetTeleportState(player);
+            player.teleportAsync(targetLocation).thenAccept(success -> {
+                if (!success) {
+                    return;
+                }
+
+                player.getScheduler().run(plugin, postTeleportTask -> {
+                    resetTeleportState(player);
+                    player.sendMessage(MessageCache.getComponent(plugin.getConfigManager().getPrefix()
+                            + plugin.getConfigManager().getTeleportedMsg()));
+                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                }, null);
+            });
+        }, null);
+    }
+
+    private void resetTeleportState(Player player) {
+        player.setFallDistance(0.0F);
+        player.setVelocity(new Vector(0.0D, 0.0D, 0.0D));
     }
 
     private void broadcastQueueJoin(Player player) {
